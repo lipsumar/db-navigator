@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DB Navigator</title>
+    <style>
+        html,body{height:100%;}
+        body{
+            margin:0;
+            overflow:hidden;
+        }
+        svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .link{
+            fill:none;
+            stroke:blue;
+            stroke-width:3px;
+        }
+        .dbobject{
+            font-family: consolas;
+        }
+        .dbobject rect{
+            fill:rgba(255,255,255,0.8);
+            stroke: blue;
+            stroke-width:2px;
+        }
+        .dbobject .origin{
+            fill: blue;
+            width:50px;
+            height:20px;
+            transform: translate(0,-21px);
+        }
+        .dragHandle{
+            fill: transparent;
+            width:50px;
+            height:20px;
+        }
+        .dbobject .originText{
+            fill: white;
+            transform: translate(3px,-5px);
+        }
+        .dbobject .tabletitle{
+            transform: translate(5px, 16px);
+            font-weight: bold;
+        }
+        .dbobject .columns{
+            transform: translate(5px, 40px);
+        }
+        .dbobject .outlet{
+            fill:blue;
+        }
+
+
+    </style>
+</head>
+<body>
+    <script src="bundle.js"></script>
+</body>
+</html>
