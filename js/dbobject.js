@@ -17,7 +17,6 @@ var DBObject = Backbone.View.extend({
 		this.model.on('sync', this.render.bind(this));
 
 		this.build();
-
 	},
 
 	pos: function(){
@@ -34,23 +33,28 @@ var DBObject = Backbone.View.extend({
 	outletStartDrag: function(){
 		var outletEl = arguments[2][0];
 		var col = outletEl.parentNode.getAttribute('data-col');
+		var i = outletEl.parentNode.getAttribute('data-i');
 		var link = new DBLink({
 			source: this,
-			sourceEl: outletEl,
+			sourceOffset: [this.width, 40 + 20*i],
 			sourceCol: col,
-			target: null,
-			svg: this.svg
+			svg: this.svg,
+			targetOffset:[4,7 + 20*i]
 		});
 		this.currentLink = link;
 	},
 	outletDrag: function(){
-		this.currentLink.target = [d3.event.x, d3.event.y];
-		this.currentLink.render();
+		var pos = [
+			this.x + d3.event.x,
+			this.y + d3.event.y + 40
+		];
+		this.currentLinkTargetPos = pos;
+		this.currentLink.render(pos);
 	},
 	outletEndDrag: function(){
 		var targetTable = prompt('table?');
         var id = this.currentLink.source.model.get('row')[this.currentLink.sourceCol];
-        var dbo = window.app.createDBObject(targetTable+'/'+id, [this.currentLink.target[0],this.currentLink.target[1]]);
+        var dbo = window.app.createDBObject(targetTable+'/'+id, this.currentLinkTargetPos);
         this.currentLink.setTarget(dbo);
 	},
 
@@ -86,7 +90,8 @@ var DBObject = Backbone.View.extend({
 		columns.forEach(function(col, i){
 			var colG = colsG.append('g')
 				.attr('transform','translate(0, '+(i*20)+')')
-				.attr('data-col', col);
+				.attr('data-col', col)
+				.attr('data-i', i);
 			colG.append('text').text(col);
 			colG.append('text')
 				.attr('class', 'value')
