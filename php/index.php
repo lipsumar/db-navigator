@@ -4,8 +4,17 @@ require_once('functions.php');
 if(trim($_GET['cmd'])!=''){
     $response = array();
     switch($_GET['cmd']){
-        case 'query':
-            $query = trim(stripslashes(urldecode($_GET['query'])));
+
+        case 'model':
+
+            $query = 'SELECT * FROM '.addslashes($_GET['table']).' WHERE id=\''.addslashes($_GET['id']).'\' LIMIT 1';
+            $result = execQuery($query);
+            $response['row'] = $result['rows'][0];
+
+            break;
+
+        case 'list':
+            $query = 'SELECT * FROM '.addslashes($_GET['table']).' WHERE '.addslashes($_GET['originField']).'='.addslashes($_GET['originValue']);
             $queryOri = $query;
 
             //process the sql tree
@@ -22,17 +31,9 @@ if(trim($_GET['cmd'])!=''){
             $result['countTotal'] = $count;
             $result['countTotal_formated'] = number_format($count, 0, ',', ' ');
 
-            $response['result'] = $result;
-
-
+            $response['rows'] = $result['rows'];
             break;
-        case 'model':
 
-            $query = 'SELECT * FROM '.addslashes($_GET['table']).' WHERE id=\''.addslashes($_GET['id']).'\' LIMIT 1';
-            $result = execQuery($query);
-            $response['row'] = $result['rows'][0];
-
-            break;
         case 'tables':
 
             //get all tables

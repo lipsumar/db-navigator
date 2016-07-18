@@ -2,6 +2,24 @@ var Backbone = require('backbone'),
     d3 = require('d3'),
     $ = require('jquery');
 var DBObject = require('./dbobject.js');
+var DBObjectList = require('./dbobjectList.js');
+
+
+function parseSlug(slug){
+    var parsed = {};
+    var slugParts = slug.split('/');
+    parsed.table = slugParts[0];
+    var id = slugParts[1];
+    if(id && id[0]===':'){
+        parsed.originField = id.substr(1);
+        parsed.originValue = slugParts[2];
+        parsed._singleId = false;
+    }else{
+        parsed.id = id;
+        parsed._singleId = true;
+    }
+    return parsed;
+}
 
 
 var App = Backbone.View.extend({
@@ -39,12 +57,24 @@ var App = Backbone.View.extend({
 
 
     createDBObject: function(slug, pos){
-        var dbObject = new DBObject({
-            x: pos[0],
-            y: pos[1],
-            svg: this.svg,
-            slug: slug
-        });
+        var parsedSlug = parseSlug(slug);
+        var dbObject;
+        if(parsedSlug._singleId){
+            dbObject = new DBObject({
+                x: pos[0],
+                y: pos[1],
+                svg: this.svg,
+                parsedSlug: parsedSlug
+            });
+        }else{
+            dbObject = new DBObjectList({
+                x: pos[0],
+                y: pos[1],
+                svg: this.svg,
+                parsedSlug: parsedSlug
+            });
+        }
+
         dbObject.render();
         return dbObject;
     }

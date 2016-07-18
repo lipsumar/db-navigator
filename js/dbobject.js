@@ -12,7 +12,7 @@ var DBObject = Backbone.View.extend({
 		this.height = 100;
 
 		this.model = new DBObjectModel({
-			slug: opts.slug
+			parsedSlug: opts.parsedSlug
 		});
 		this.model.on('sync', this.render.bind(this));
 
@@ -32,21 +32,20 @@ var DBObject = Backbone.View.extend({
 
 	outletStartDrag: function(){
 		var outletEl = arguments[2][0];
-		var col = outletEl.parentNode.getAttribute('data-col');
-		var i = outletEl.parentNode.getAttribute('data-i');
+		var col = outletEl.getAttribute('data-col');
+		var i = outletEl.getAttribute('data-i');
 		var link = new DBLink({
 			source: this,
 			sourceOffset: [this.width, 40 + 20*i],
 			sourceCol: col,
-			svg: this.svg,
-			targetOffset:[4,7 + 20*i]
+			svg: this.svg
 		});
 		this.currentLink = link;
 	},
 	outletDrag: function(){
 		var pos = [
 			this.x + d3.event.x,
-			this.y + d3.event.y + 40
+			this.y + d3.event.y + 8
 		];
 		this.currentLinkTargetPos = pos;
 		this.currentLink.render(pos);
@@ -83,15 +82,13 @@ var DBObject = Backbone.View.extend({
 
 		this.tableTitle = this.el.append('text')
 			.attr('class', 'tabletitle')
-			.text(this.model.table);
+			.text(this.model.parsedSlug.table);
 
 		var colsG = this.el.append('g').attr('class', 'columns');
-		var columns = window.app.tables[this.model.table].__fields;
+		var columns = window.app.tables[this.model.parsedSlug.table].__fields;
 		columns.forEach(function(col, i){
 			var colG = colsG.append('g')
-				.attr('transform','translate(0, '+(i*20)+')')
-				.attr('data-col', col)
-				.attr('data-i', i);
+				.attr('transform','translate(0, '+(i*20)+')');
 			colG.append('text').text(col);
 			colG.append('text')
 				.attr('class', 'value')
@@ -99,12 +96,14 @@ var DBObject = Backbone.View.extend({
 				.attr('x', this.width-20)
 				.attr('text-anchor', 'end');
 
-			var target = colG.append('rect')
+			var target = this.el.append('rect')
 				.attr('class', 'outlet')
-				.attr('x', this.width-10)
-				.attr('y', -10)
+				.attr('x', this.width-5)
+				.attr('y', i*20 + 30)
 				.attr('width', 10)
-				.attr('height', 10);
+				.attr('height', 10)
+				.attr('data-i', i)
+				.attr('data-col', col);
 
 			target.call(d3.drag()
 				.on('start', this.outletStartDrag.bind(this))

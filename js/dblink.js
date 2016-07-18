@@ -28,7 +28,7 @@ var DBLink = Backbone.View.extend({
 		trgPos = trgPos || this.target.pos();
 
 		var sourcePos = [srcPos[0]+this.sourceOffset[0], srcPos[1]+this.sourceOffset[1]];
-		var targetPos = [trgPos[0]+this.targetOffset[0], trgPos[1]+this.targetOffset[1]];
+		var targetPos = [trgPos[0], trgPos[1]];
 
 
 		var bezOffset = (targetPos[0] - sourcePos[0])/2;
