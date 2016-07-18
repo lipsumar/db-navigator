@@ -88,11 +88,11 @@ var DBObject = Backbone.View.extend({
 		var columns = window.app.tables[this.model.parsedSlug.table].__fields;
 		columns.forEach(function(col, i){
 			var colG = colsG.append('g')
-				.attr('transform','translate(0, '+(i*20)+')');
+				.attr('transform','translate(0, '+(i*20)+')')
+				.attr('data-col', col);
 			colG.append('text').text(col);
 			colG.append('text')
 				.attr('class', 'value')
-
 				.attr('x', this.width-20)
 				.attr('text-anchor', 'end');
 
