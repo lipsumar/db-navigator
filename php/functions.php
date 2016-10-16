@@ -1,16 +1,12 @@
 <?php
 require_once('./dqml2tree.php');
-/*
+
 define('DB_HOST','localhost');
 define('DB_USER','root');
 define('DB_PASS','root');
 define('DB_NAME','test');
-*/
-define('DB_HOST','localhost:8889');
-define('DB_USER','root');
-define('DB_PASS','root');
-define('DB_NAME','test');
-mysql_connect(DB_HOST, DB_USER, DB_PASS) or die('Unable to connect to DB.<br/>MySQL said: '.mysql_error());
+
+@mysql_connect(DB_HOST, DB_USER, DB_PASS) or die('Unable to connect to DB.<br/>MySQL said: '.mysql_error());
 $db = mysql_select_db(DB_NAME) or die('Connected to DB, but unable to select database.<br/>MySQL said: '.mysql_error());
 
 

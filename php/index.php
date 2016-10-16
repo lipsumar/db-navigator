@@ -1,4 +1,5 @@
 <?php
+
 require_once('functions.php');
 
 if(trim($_GET['cmd'])!=''){
@@ -14,7 +15,7 @@ if(trim($_GET['cmd'])!=''){
             break;
 
         case 'list':
-            $query = 'SELECT * FROM '.addslashes($_GET['table']).' WHERE '.addslashes($_GET['originField']).'='.addslashes($_GET['originValue']);
+            $query = 'SELECT * FROM '.addslashes($_GET['table']).' WHERE '.addslashes($_GET['originField']).'=\''.addslashes($_GET['originValue']).'\'';
             $queryOri = $query;
 
             //process the sql tree

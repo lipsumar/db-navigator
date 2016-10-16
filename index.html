@@ -14,6 +14,12 @@
             top: 0;
             left: 0;
         }
+
+
+        .background{
+            /*fill:#eee;*/
+        }
+
         .link{
             fill:none;
             stroke:blue;
@@ -27,16 +33,15 @@
             stroke: blue;
             stroke-width:2px;
         }
+        .dbobject rect.drag{
+            fill:transparent;
+            stroke: transparent;
+        }
         .dbobject .origin{
             fill: blue;
-            width:80px;
+            width:120px;
             height:20px;
             transform: translate(0,-21px);
-        }
-        .dragHandle{
-            fill: transparent;
-            width:80px;
-            height:20px;
         }
         .dbobject .originText{
             fill: white;
@@ -49,8 +54,19 @@
         .dbobject .columns{
             transform: translate(5px, 40px);
         }
+        .dbobject .table-header text{
+            text-decoration: underline;
+            cursor: pointer;
+        }
         .dbobject .outlet{
             fill:blue;
+        }
+
+        .dbobject .listoutlet{
+            fill: blue;
+        }
+        .dbobject .listoutletText{
+            fill:white;
         }
 
 
