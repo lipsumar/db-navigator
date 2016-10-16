@@ -85,8 +85,8 @@ var DBObject = Backbone.View.extend({
      * @return {[type]} [description]
      */
     build: function(){
-        //this.el = this.svg.append('g')
-        this.el = d3.select(document.createElementNS(d3.namespaces.svg, 'g'))
+        this.el = this.svg.append('g')
+        //this.el = d3.select(document.createElementNS(d3.namespaces.svg, 'g'))
             .attr('class', 'dbobject');
 
         this.container = this.el.append('rect');
@@ -125,7 +125,7 @@ var DBObject = Backbone.View.extend({
                 }.bind(this))
 
             );
-
+        this.built = true;
     },
 
     buildColumns: function(){

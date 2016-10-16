@@ -1,19 +1,24 @@
 var d3 = require('d3'),
     DBObject = require('./DBObject.js'),
-    utils = require('../utilities');
+    ColumnChooser = require('./ColumnChooser');
 
 var CELL_SPACING = 10,
     CHARACTER_WIDTH = 8.8,
-    COL_LENGTH_MAX_CHARS = 10;
+    COL_LENGTH_MAX_CHARS = 10,
+    DEFAULT_DISPLAY_COL_COUNT = 3;
 
 var DBObjectList = DBObject.extend({
     initialize: function(){
+        this.setDisplayCols(this.model.getTableFields().slice(0,DEFAULT_DISPLAY_COL_COUNT));
         DBObject.prototype.initialize.apply(this, arguments);
 
         this.outlets = [];
-
         this.originalHeight = this.height;
-        this.model.once('sync', this.renderValues.bind(this));
+    },
+
+    setDisplayCols: function(displayCols){
+        this.displayCols = displayCols;
+        this.renderValues();
     },
 
     headerClicked: function(col){
@@ -34,10 +39,13 @@ var DBObjectList = DBObject.extend({
         var headerEl = this.el.append('g')
             .attr('class','table-header')
             .attr('transform', 'translate(5,40)');
-        var columns = this.model.getTableFields();
-        var colX = 0;
 
-        columns.forEach(function(field, i){
+        var colX = 0;
+        var width = 0;
+
+        this.displayCols.forEach(function(field, i){
+            if(this.displayCols.indexOf(field)===-1) return;
+
             var columnCharWidth = field.length,
                 colWidth = (colsLengths[i] || columnCharWidth) * CHARACTER_WIDTH;
             headerEl.append('text')
@@ -47,31 +55,47 @@ var DBObjectList = DBObject.extend({
 
             colX+=colWidth + CELL_SPACING;
         }.bind(this));
+        width = colX;
 
-        this.width = colX;
+
+        var cols = this.model.getTableFields();
+        if(this.displayCols.length < cols.length){
+            var text = '+ '+(cols.length - this.displayCols.length) + ' more';
+            this.colChooserBtn = headerEl.append('text')
+                .attr('x', width)
+                .text(text)
+                .on('click', this.displayColChooser.bind(this));
+            width+= text.length*CHARACTER_WIDTH + CELL_SPACING;
+        }
+
+        return width;
 
     },
 
     renderValues: function(){
-        this.renderValues = function(){};
-        var rows = this.model.getRows();
-        if(!rows) return;
 
-        var cols = this.model.getTableFields();
+        var rows = this.model.getRows();
+        if(!rows || !this.built) return;
+        this.el.select('g.table-container').remove();
+
+        //var cols = this.model.getTableFields();
         var model = this.model;
 
-        this.el.append('rect')
+        var g = this.el.append('g').attr('class', 'table-container');
+
+        g.append('rect')
             .attr('transform', 'translate('+(model.table.length*CHARACTER_WIDTH+CELL_SPACING)+', 3)')
             .attr('class', 'total')
             .attr('width', model.total.toString().length*CHARACTER_WIDTH + CELL_SPACING*2)
             .attr('height', 17);
-        this.el.append('text')
+        g.append('text')
             .attr('transform', 'translate('+(model.table.length*CHARACTER_WIDTH+CELL_SPACING*2)+', 16)')
             .attr('class', 'total__text')
             .text(model.total);
 
         var colsLengths = [];
-        cols.forEach(function(field){
+        this.displayCols.forEach(function(field){
+            //if(this.displayCols.indexOf(field)===-1) return;
 
             // find the lenghiest in this column
             var lengthiest = model.getLengthiestValue(field, [field]);
@@ -80,17 +104,19 @@ var DBObjectList = DBObject.extend({
             var maxChar = Math.max(COL_LENGTH_MAX_CHARS, field.length);
 
             colsLengths.push(Math.min(maxChar, lengthiest.length));
-        });
+        }.bind(this));
 
-        this.buildColumns(colsLengths);
+        var colsWidth = this.buildColumns(colsLengths);
 
         var height = this.originalHeight;
+        var width = 0;
         rows.forEach(function(row, y){
-            var rowEl = this.el.append('g')
+            var rowEl = g.append('g')
                 .attr('transform', 'translate(5, '+(y*20+60)+')');
             var colX = 0;
 
-            cols.forEach(function(field, i){
+            this.displayCols.forEach(function(field, i){
+
                 var val = row.get(field);
                 var valLength = val.toString().length;
 
@@ -104,7 +130,11 @@ var DBObjectList = DBObject.extend({
                     .attr('x', colX)
                     .text(val);
 
+
+
             }.bind(this));
+
+            width = colX;
 
             if(y>1){
                 height+=20;
@@ -113,20 +143,17 @@ var DBObjectList = DBObject.extend({
         }.bind(this));
 
 
-
         if( model.total > rows.length){
-            this.el.append('text')
+            g.append('text')
                 .attr('transform', 'translate(5, '+(rows.length*20+60)+')')
-                .text('and ' + (model.total - rows.length) + ' more…');
+                .text('+ ' + (model.total - rows.length) + ' more…');
             height+=10;
         }
 
 
         this.height = height;
-        this.width = utils.sum(colsLengths)*CHARACTER_WIDTH + colsLengths.length*CELL_SPACING;
+        this.width = Math.max(width, colsWidth);
         this.render();
-
-
     },
 
     buildOutlets: function(){
@@ -166,9 +193,16 @@ var DBObjectList = DBObject.extend({
         }
     },
 
-    render: function(){
+    displayColChooser: function(){
+        var chooser = new ColumnChooser({
+            source: this.colChooserBtn,
+            columns: this.model.getTableFields(),
+            chosenColumns: this.model.getTableFields().slice(0,3)
+        }).render();
+        chooser.on('toggle', this.setDisplayCols.bind(this));
+    },
 
-        //this.height = this.originalHeight;
+    render: function(){
 
         this.el.attr('transform', 'translate('+this.x+','+(this.y)+')');
 

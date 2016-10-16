@@ -57,8 +57,8 @@ var App = Backbone.View.extend({
             });
 
         view.pos(pos);
-        var el = view.render();
-        this.svg.node().appendChild(el.node());
+        view.render();
+        //this.svg.node().appendChild(el.node());
 
         return view;
     },
@@ -67,6 +67,8 @@ var App = Backbone.View.extend({
         var svg = d3.select("body").append("svg")
             .attr("width", width)
             .attr("height", height);
+
+        this.rootSvg = svg;
 
         svg.append("defs")
             .append('pattern')
@@ -80,9 +82,11 @@ var App = Backbone.View.extend({
                     .attr('height', 150);
 
         // apply zoom
-        var zoom = d3.zoom().on('zoom', function(){
-            svg.attr("transform", d3.event.transform);
-        });
+        var zoom = d3.zoom()
+            .on('zoom', function(){
+                svg.attr("transform", d3.event.transform);
+                this.trigger('zoom');
+            }.bind(this));
         svg = svg.call(zoom).append('g');
 
         // draw a grey "workspace" - purely styling
