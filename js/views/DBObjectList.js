@@ -2,6 +2,10 @@ var d3 = require('d3'),
     DBObject = require('./DBObject.js'),
     utils = require('../utilities');
 
+var CELL_SPACING = 10,
+    CHARACTER_WIDTH = 8.8,
+    COL_LENGTH_MAX_CHARS = 10;
+
 var DBObjectList = DBObject.extend({
     initialize: function(){
         DBObject.prototype.initialize.apply(this, arguments);
@@ -23,22 +27,25 @@ var DBObjectList = DBObject.extend({
         this.render();
     },
 
-    buildColumns: function(){
+    buildColumns: function(colsLengths){
+        colsLengths = colsLengths || [];
+        this.el.select('g.table-header').remove();
+
         var headerEl = this.el.append('g')
             .attr('class','table-header')
             .attr('transform', 'translate(5,40)');
         var columns = this.model.getTableFields();
         var colX = 0;
 
-        columns.forEach(function(field){
+        columns.forEach(function(field, i){
             var columnCharWidth = field.length,
-                colWidth = columnCharWidth * 8.8; // 1 char is 8.8px
+                colWidth = (colsLengths[i] || columnCharWidth) * CHARACTER_WIDTH;
             headerEl.append('text')
                 .attr('x', colX)
                 .text(field)
                 .on('click', this.headerClicked.bind(this, field));
 
-            colX+=colWidth + 10;
+            colX+=colWidth + CELL_SPACING;
         }.bind(this));
 
         this.width = colX;
@@ -46,53 +53,74 @@ var DBObjectList = DBObject.extend({
     },
 
     renderValues: function(){
+        this.renderValues = function(){};
         var rows = this.model.getRows();
+        if(!rows) return;
 
-        if(rows){
+        var cols = this.model.getTableFields();
+        var model = this.model;
 
-            var cols = this.model.getTableFields();
-            var model = this.model;
-            var colsLengths = [];
+        this.el.append('rect')
+            .attr('transform', 'translate('+(model.table.length*CHARACTER_WIDTH+CELL_SPACING)+', 3)')
+            .attr('class', 'total')
+            .attr('width', model.total.toString().length*CHARACTER_WIDTH + CELL_SPACING*2)
+            .attr('height', 17);
+        this.el.append('text')
+            .attr('transform', 'translate('+(model.table.length*CHARACTER_WIDTH+CELL_SPACING*2)+', 16)')
+            .attr('class', 'total__text')
+            .text(model.total);
 
-            cols.forEach(function(field){
+        var colsLengths = [];
+        cols.forEach(function(field){
 
-                // find the lenghiest in this column
-                var lengthiest = model.getLengthiestValue(field, [field]);
-                colsLengths.push(Math.min(10, lengthiest.length));
-            });
+            // find the lenghiest in this column
+            var lengthiest = model.getLengthiestValue(field, [field]);
+            colsLengths.push(Math.min(COL_LENGTH_MAX_CHARS, lengthiest.length));
+        });
 
-            var height = this.originalHeight;
+        this.buildColumns(colsLengths);
 
-            rows.forEach(function(row, y){
-                var rowEl = this.el.append('g')
-                    .attr('transform', 'translate(5, '+(y*20+60)+')');
-                var colX = 0;
+        var height = this.originalHeight;
+        rows.forEach(function(row, y){
+            var rowEl = this.el.append('g')
+                .attr('transform', 'translate(5, '+(y*20+60)+')');
+            var colX = 0;
 
-                cols.forEach(function(field, i){
-                    var val = row.get(field);
-                    var valLength = val.toString().length;
+            cols.forEach(function(field, i){
+                var val = row.get(field);
+                var valLength = val.toString().length;
 
-                    if(valLength > 10){
-                        val = val.substr(0,9) + '…';
-                    }
-
-                    colX += i > 0 ? colsLengths[i-1]*8.8+10 : 0;
-                    rowEl.append('text')
-                        .attr('x', colX)
-                        .text(val);
-
-                }.bind(this));
-
-                if(y>1){
-                    height+=20;
+                if(valLength > COL_LENGTH_MAX_CHARS){
+                    val = val.substr(0,COL_LENGTH_MAX_CHARS-1) + '…';
                 }
+
+                colX += i > 0 ? colsLengths[i-1]*CHARACTER_WIDTH + CELL_SPACING : 0;
+                rowEl.append('text')
+                    .attr('x', colX)
+                    .text(val);
 
             }.bind(this));
 
-            this.height = height;
-            this.width = utils.sum(colsLengths)*8.8 + colsLengths.length*10;
-            this.render();
+            if(y>1){
+                height+=20;
+            }
+
+        }.bind(this));
+
+
+
+        if( model.total > rows.length){
+            this.el.append('text')
+                .attr('transform', 'translate(5, '+(rows.length*20+60)+')')
+                .text('and ' + (model.total - rows.length) + ' more…');
+            height+=10;
         }
+
+
+        this.height = height;
+        this.width = utils.sum(colsLengths)*CHARACTER_WIDTH + colsLengths.length*CELL_SPACING;
+        this.render();
+
 
     },
 

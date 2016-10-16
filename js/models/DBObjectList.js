@@ -36,10 +36,12 @@ var DBObjectListModel = Backbone.Collection.extend({
         var values = this.pluck(field).concat(additionalValues || []);
 
         var l = 0,
-            lengthiest;
+            lengthiest,
+            len;
         for (var i = 0; i < values.length; i++) {
-            if(values[i].length > l){
-                l = values[i].length;
+            len = values[i].toString().length;
+            if(len > l){
+                l = len;
                 lengthiest = values[i];
             }
         }
