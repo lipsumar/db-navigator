@@ -75,7 +75,11 @@ var DBObjectList = DBObject.extend({
 
             // find the lenghiest in this column
             var lengthiest = model.getLengthiestValue(field, [field]);
-            colsLengths.push(Math.min(COL_LENGTH_MAX_CHARS, lengthiest.length));
+
+            // always display the field name in full
+            var maxChar = Math.max(COL_LENGTH_MAX_CHARS, field.length);
+
+            colsLengths.push(Math.min(maxChar, lengthiest.length));
         });
 
         this.buildColumns(colsLengths);
@@ -90,8 +94,9 @@ var DBObjectList = DBObject.extend({
                 var val = row.get(field);
                 var valLength = val.toString().length;
 
-                if(valLength > COL_LENGTH_MAX_CHARS){
-                    val = val.substr(0,COL_LENGTH_MAX_CHARS-1) + '…';
+                var maxChar = Math.max(COL_LENGTH_MAX_CHARS, field.length);
+                if(valLength > maxChar){
+                    val = val.substr(0,maxChar-1) + '…';
                 }
 
                 colX += i > 0 ? colsLengths[i-1]*CHARACTER_WIDTH + CELL_SPACING : 0;
