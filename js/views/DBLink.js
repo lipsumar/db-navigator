@@ -35,6 +35,11 @@ var DBLink = Backbone.View.extend({
         path.moveTo(sourcePos[0], sourcePos[1]);
         path.bezierCurveTo(sourcePos[0]+bezOffset,sourcePos[1], targetPos[0]-bezOffset,targetPos[1], targetPos[0], targetPos[1]);
         this.el.attr('d', path.toString());
+    },
+
+    remove: function(){
+        Backbone.View.prototype.remove.apply(this, arguments);
+        this.el.remove();
     }
 });
 

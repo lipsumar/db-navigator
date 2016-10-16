@@ -19,6 +19,9 @@ module.exports = {
      * @return {object}
      */
     parseSlug: function parseSlug(slug){
+        if(slug.trim() === ''){
+            return {_invalid: true};
+        }
         var parsed = {};
         var slugParts = slug.split('/');
         parsed.table = slugParts[0];
@@ -28,9 +31,18 @@ module.exports = {
             parsed.id = slugParts[2];
             parsed._singleId = false;
         }else{
+            parsed.originField = window.app.idAttribute;
             parsed.id = id;
             parsed._singleId = true;
         }
         return parsed;
+    },
+
+    sum: function(arr){
+        var count = 0;
+        for(var i=0, n=arr.length; i < n; i++) {
+            count += arr[i];
+        }
+        return count;
     }
 };

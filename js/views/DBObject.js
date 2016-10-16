@@ -63,13 +63,19 @@ var DBObject = Backbone.View.extend({
         this.currentLink.render(pos);
     },
     outletEndDrag: function(){
-        var targetTable = prompt('table?');
+        var targetTable = prompt('table? (source:'+this.currentLink.sourceCol+')');
 
-        // retrieve value
-        var value = this.currentLink.source.model.getValueAsString(this.currentLink.sourceCol);
+        if(targetTable){
+            // retrieve value
+            var value = this.currentLink.source.model.getValueAsString(this.currentLink.sourceCol);
 
-        var dbo = window.app.createDBObject(targetTable+'/'+value, this.currentLinkTargetPos);
-        this.currentLink.setTarget(dbo);
+            var dbo = window.app.createDBObject(targetTable+'/'+value, this.currentLinkTargetPos);
+            this.currentLink.setTarget(dbo);
+        }else{
+            this.currentLink.remove();
+        }
+
+
     },
 
     /**
@@ -89,7 +95,7 @@ var DBObject = Backbone.View.extend({
             .attr('class', 'origin');
         this.originFieldText = this.el.append('text')
             .attr('class', 'originText')
-            .text('id='+this.model.id);
+            .text(this.model.originField+'='+this.model.id);
 
 
         this.tableTitle = this.el.append('text')
@@ -107,11 +113,17 @@ var DBObject = Backbone.View.extend({
             .attr('height', 50)
             .attr('cursor', 'move')
             .call(d3.drag()
-                .on('drag', function(){
+                .on('start', function(){
                     var x = d3.event.x,
-                        y = d3.event.y + 21;
+                        y = d3.event.y;
+                    this.startDragOffset = [x,y]; // there is probably a nicer way....
+                }.bind(this))
+                .on('drag', function(){
+                    var x = d3.event.x - this.startDragOffset[0],
+                        y = d3.event.y + 20 + this.startDragOffset[1];
                     this.move(x, y);
                 }.bind(this))
+
             );
 
     },

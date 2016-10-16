@@ -1,21 +1,15 @@
 var d3 = require('d3'),
-    DBObject = require('./DBObject.js');
-
-var colWidth = 100;
+    DBObject = require('./DBObject.js'),
+    utils = require('../utilities');
 
 var DBObjectList = DBObject.extend({
     initialize: function(){
-        /*this.svg = opts.svg;
-        this.width = 250;*/
         DBObject.prototype.initialize.apply(this, arguments);
 
         this.outlets = [];
 
-
         this.originalHeight = this.height;
         this.model.once('sync', this.renderValues.bind(this));
-
-        this.build();
     },
 
     headerClicked: function(col){
@@ -29,50 +23,22 @@ var DBObjectList = DBObject.extend({
         this.render();
     },
 
-    // build: function(){
-    //     this.el = this.svg.append('g')
-    //         .attr('class', 'dbobject');
-
-    //     this.container = this.el.append('rect');
-
-    //     this.originFieldEl = this.el.append('rect')
-    //         .attr('class', 'origin');
-    //     this.originFieldText = this.el.append('text')
-    //         .attr('class', 'originText')
-    //         .text(':'+this.model.parsedSlug.originField);
-
-    //     this.dragHandle = this.svg.append('rect')
-    //         .attr('transform', 'translate('+this.x+','+(this.y-13)+')')
-    //         .attr('class', 'dragHandle');
-    //     this.dragHandle.call(d3.drag()
-    //         .on('drag', function(e){
-    //             this.el.attr('transform', 'translate('+(d3.event.x)+','+(d3.event.y+7)+')');
-    //             this.dragHandle.attr('transform', 'translate('+(d3.event.x)+','+(d3.event.y-21+7)+')');
-    //             this.pos(d3.event.x,d3.event.y);
-    //         }.bind(this)
-    //     ));
-
-    //     this.tableTitle = this.el.append('text')
-    //         .attr('class', 'tabletitle')
-    //         .text(this.model.parsedSlug.table);
-    // },
-
     buildColumns: function(){
         var headerEl = this.el.append('g')
             .attr('class','table-header')
             .attr('transform', 'translate(5,40)');
         var columns = this.model.getTableFields();
         var colX = 0;
-        this.columnsX = [];
+
         columns.forEach(function(field){
-            var columnCharWidth = Math.max(10, field.length),
-                colWidth = columnCharWidth * 10; // 1 char is 10px
+            var columnCharWidth = field.length,
+                colWidth = columnCharWidth * 8.8; // 1 char is 8.8px
             headerEl.append('text')
                 .attr('x', colX)
                 .text(field)
                 .on('click', this.headerClicked.bind(this, field));
-            this.columnsX.push(colX);
-            colX+=colWidth;
+
+            colX+=colWidth + 10;
         }.bind(this));
 
         this.width = colX;
@@ -80,39 +46,57 @@ var DBObjectList = DBObject.extend({
     },
 
     renderValues: function(){
-        var rows = this.model.get('rows');
+        var rows = this.model.getRows();
+
         if(rows){
 
+            var cols = this.model.getTableFields();
+            var model = this.model;
+            var colsLengths = [];
 
-            rows.forEach(function(row, i){
+            cols.forEach(function(field){
+
+                // find the lenghiest in this column
+                var lengthiest = model.getLengthiestValue(field, [field]);
+                colsLengths.push(Math.min(10, lengthiest.length));
+            });
+
+            var height = this.originalHeight;
+
+            rows.forEach(function(row, y){
                 var rowEl = this.el.append('g')
-                    .attr('transform', 'translate(5, '+(i*20+60)+')');
-                Object.keys(row).forEach(function(field, i){
-                    var valLength = row[field].toString().length;
-                    var val = row[field];
-                    if(valLength > 9){
+                    .attr('transform', 'translate(5, '+(y*20+60)+')');
+                var colX = 0;
+
+                cols.forEach(function(field, i){
+                    var val = row.get(field);
+                    var valLength = val.toString().length;
+
+                    if(valLength > 10){
                         val = val.substr(0,9) + '…';
                     }
+
+                    colX += i > 0 ? colsLengths[i-1]*8.8+10 : 0;
                     rowEl.append('text')
-                        .attr('x', this.columnsX[i])
+                        .attr('x', colX)
                         .text(val);
+
                 }.bind(this));
-                if(i>2){
-                    this.height+=20;
+
+                if(y>1){
+                    height+=20;
                 }
 
             }.bind(this));
+
+            this.height = height;
+            this.width = utils.sum(colsLengths)*8.8 + colsLengths.length*10;
+            this.render();
         }
 
     },
 
-    render: function(){
-
-console.log('RENDER');
-        this.height = this.originalHeight;
-
-        this.el.attr('transform', 'translate('+this.x+','+(this.y)+')');
-
+    buildOutlets: function(){
         if(this.outlets.length > 0){
             this.outlets.forEach(function(outlet, i){
                 this.el.append('rect')
@@ -147,6 +131,15 @@ console.log('RENDER');
                 this.el.append('rect');
             }.bind(this));
         }
+    },
+
+    render: function(){
+
+        //this.height = this.originalHeight;
+
+        this.el.attr('transform', 'translate('+this.x+','+(this.y)+')');
+
+        //this.buildOutlets();
 
         this.container
             .attr('width', this.width)

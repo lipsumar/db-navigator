@@ -4,11 +4,12 @@ var DBObjectModel = Backbone.Model.extend({
 
     initialize: function(opts){
         this.table = opts.table;
+        this.originField = opts.originField;
         this.fetch();
     },
 
     url: function(){
-        return 'php/index.php?cmd=model&table=' + this.table + '&id=' + this.id;
+        return 'php/index.php?cmd=model&table=' + this.table + '&id=' + this.id + '&idAttribute=' + window.app.idAttribute;
     },
 
     getValueAsString: function(col){

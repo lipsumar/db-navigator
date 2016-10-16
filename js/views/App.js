@@ -12,7 +12,7 @@ var App = Backbone.View.extend({
         this.width = 1400;
         this.height = 800;
         this.tables = opts.tables;
-
+        this.idAttribute = 'id';
 
         this.svg = this.createSvg(this.width, this.height);
 
@@ -23,6 +23,10 @@ var App = Backbone.View.extend({
     /*events:{
         'mouseup svg': 'svgMouseup'
     },*/
+
+    setIdAttribute: function(idAttribute){
+        this.idAttribute = idAttribute;
+    },
 
 
     onContextMenu: function(){
@@ -36,8 +40,11 @@ var App = Backbone.View.extend({
 
     createDBObject: function(slugString, pos){
         console.log(slugString, utilities.parseSlug(slugString));
-        var slug = utilities.parseSlug(slugString),
-            Model = slug._singleId ? DBObjectModel : DBObjectListModel,
+        var slug = utilities.parseSlug(slugString);
+
+        if(slug._invalid) return;
+
+        var Model = slug._singleId ? DBObjectModel : DBObjectListModel,
             model = new Model({
                 table: slug.table,
                 originField: slug.originField,

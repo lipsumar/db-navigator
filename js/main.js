@@ -11,5 +11,7 @@ $.getJSON('php/index.php?cmd=tables', function(resp){
     // for dev only
     //window.app.createDBObject('ibouf_users/1', [200, 200]);
     //window.app.createDBObject('ibouf_users/:table_id/2', [100, 200]);
-    window.app.createDBObject('fe_users/:username/piremmanuel@gmail.com', [200, 200]);
+
+    window.app.setIdAttribute('uid');
+    window.app.createDBObject('t_users/3', [100, 100]);
 });

@@ -8,7 +8,7 @@ if(trim($_GET['cmd'])!=''){
 
         case 'model':
 
-            $query = 'SELECT * FROM '.addslashes($_GET['table']).' WHERE id=\''.addslashes($_GET['id']).'\' LIMIT 1';
+            $query = 'SELECT * FROM '.addslashes($_GET['table']).' WHERE '.addslashes($_GET['idAttribute']).'=\''.addslashes($_GET['id']).'\' LIMIT 1';
             $result = execQuery($query);
             $response['row'] = $result['rows'][0];
 
@@ -29,9 +29,7 @@ if(trim($_GET['cmd'])!=''){
             makeLimitedQuery($query,$sqlTree);
             $result = execQuery($query);
 
-            $result['countTotal'] = $count;
-            $result['countTotal_formated'] = number_format($count, 0, ',', ' ');
-
+            $response['countTotal'] = (int)$count;
             $response['rows'] = $result['rows'];
             break;
 
