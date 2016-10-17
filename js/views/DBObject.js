@@ -43,12 +43,14 @@ var DBObject = Backbone.View.extend({
     },
 
 
-    outletStartDrag: function(){
-        var outletEl = arguments[2][0];
+    outletStartDrag: function(offset){
+        offset = offset || [0,0];
+        var outletEl = arguments[3][0];
+        var outletBbox = outletEl.getBBox();
         var col = outletEl.getAttribute('data-col');
         var link = new DBLink({
             source: this,
-            sourceOffset: [this.width, outletEl.y.baseVal.value + 5],
+            sourceOffset: [outletBbox.x + offset[0], outletBbox.y + offset[1]],
             sourceCol: col,
             svg: this.svg
         });
@@ -150,7 +152,7 @@ var DBObject = Backbone.View.extend({
                 .attr('data-col', col);
 
             target.call(d3.drag()
-                .on('start', this.outletStartDrag.bind(this))
+                .on('start', this.outletStartDrag.bind(this, [0,5]))
                 .on('drag', this.outletDrag.bind(this))
                 .on('end', this.outletEndDrag.bind(this))
             );

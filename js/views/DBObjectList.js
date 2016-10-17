@@ -21,23 +21,16 @@ var DBObjectList = DBObject.extend({
         this.renderValues();
     },
 
-    headerClicked: function(col){
-        this.addOutlet(col);
-    },
-
-    addOutlet: function(col){
-        this.outlets.push({
-            col: col
-        });
-        this.render();
-    },
-
     buildColumns: function(colsLengths){
         colsLengths = colsLengths || [];
         this.el.select('g.table-header').remove();
+        this.el.select('g.table-footer').remove();
 
         var headerEl = this.el.append('g')
             .attr('class','table-header')
+            .attr('transform', 'translate(5,40)');
+        var footerEl = this.el.append('g')
+            .attr('class','table-footer')
             .attr('transform', 'translate(5,40)');
 
         var colX = 0;
@@ -50,14 +43,44 @@ var DBObjectList = DBObject.extend({
                 colWidth = (colsLengths[i] || columnCharWidth) * CHARACTER_WIDTH;
             headerEl.append('text')
                 .attr('x', colX)
-                .text(field)
-                .on('click', this.headerClicked.bind(this, field));
+                .text(field);
+
+            var colFoot = footerEl.append('g')
+                .attr('transform', 'translate('+colX+', 0)');
+            colFoot.append('rect')
+                .attr('class', 'foot-outlet')
+                .attr('width', colWidth)
+                .attr('height', 20);
+            colFoot.append('text')
+                .attr('y', 16)
+                .attr('class', 'foot-outlet__text')
+                .text(field);
+
+            // target must be added on this.el directly
+            footerEl.append('rect')
+                .attr('class', 'outlet')
+                .attr('x',  colX + (colWidth/2 - 5))
+                .attr('y', 20)
+                .attr('width', 10)
+                .attr('height', 10)
+                .attr('data-col', field)
+                .call(d3.drag()
+                    .on('start', function(){
+                        var args = [].slice.call(arguments);
+                        [].unshift.call(args,[15, this.height+5]);
+                        this.outletStartDrag.apply(this, args);
+                    }.bind(this))
+                    .on('drag', this.outletDrag.bind(this))
+                    .on('end', this.outletEndDrag.bind(this))
+                );
+
 
             colX+=colWidth + CELL_SPACING;
         }.bind(this));
         width = colX;
 
 
+        // column chooser
         var cols = this.model.getTableFields();
         if(this.displayCols.length < cols.length){
             var text = '+ '+(cols.length - this.displayCols.length) + ' more';
@@ -150,6 +173,7 @@ var DBObjectList = DBObject.extend({
             height+=10;
         }
 
+        this.el.select('.table-footer').attr('transform', 'translate(5,'+height+')');
 
         this.height = height;
         this.width = Math.max(width, colsWidth);
