@@ -7,6 +7,9 @@ var DBObjectListModel = Backbone.Collection.extend({
         this.originField = opts.originField;
         this.table = opts.table;
         this.id = opts.id;
+        this.once('sync', function(){
+            this.synced = true;
+        }.bind(this));
         this.fetch();
     },
 

@@ -38,11 +38,21 @@ var App = Backbone.View.extend({
     },
 
 
-    createDBObject: function(slugString, pos){
-        console.log(slugString, utilities.parseSlug(slugString));
-        var slug = utilities.parseSlug(slugString);
+    createDBObject: function(slug, opts){
+        //console.log(slugString, utilities.parseSlug(slugString));
+        slug = typeof slug === 'string' ? utilities.parseSlug(slug) : slug;
 
         if(slug._invalid) return;
+
+        if(opts.from){
+            var model = opts.from.model;
+            if(model.synced){
+                slug.id = model.getValueAsString(opts.fromField);
+            }else{
+                model.once('sync', this.createDBObject.bind(this, slug, opts));
+                return;
+            }
+        }
 
         var Model = slug._singleId ? DBObjectModel : DBObjectListModel,
             model = new Model({
@@ -56,7 +66,10 @@ var App = Backbone.View.extend({
                 svg: this.svg
             });
 
-        view.pos(pos);
+        if(opts.pos){
+            view.pos(opts.pos);
+        }
+
         view.render();
         //this.svg.node().appendChild(el.node());
 

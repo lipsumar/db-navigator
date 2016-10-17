@@ -5,6 +5,9 @@ var DBObjectModel = Backbone.Model.extend({
     initialize: function(opts){
         this.table = opts.table;
         this.originField = opts.originField;
+        this.once('sync', function(){
+            this.synced = true;
+        }.bind(this));
         this.fetch();
     },
 

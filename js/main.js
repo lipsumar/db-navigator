@@ -13,5 +13,10 @@ $.getJSON('php/index.php?cmd=tables', function(resp){
     //window.app.createDBObject('ibouf_users/:table_id/2', [100, 200]);
 
     window.app.setIdAttribute('uid');
-    window.app.createDBObject('t_users/3', [100, 100]);
+    var cartman = window.app.createDBObject('t_users/3', {pos:[100, 100]});
+    window.app.createDBObject('t_stuff/:user_id', {
+        from: cartman,
+        fromField: 'uid'
+    });
+    window.app.createDBObject('t_stuff/:user_id/4', {pos:[100, 250]});
 });

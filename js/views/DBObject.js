@@ -71,7 +71,7 @@ var DBObject = Backbone.View.extend({
             // retrieve value
             var value = this.currentLink.source.model.getValueAsString(this.currentLink.sourceCol);
 
-            var dbo = window.app.createDBObject(targetTable+'/'+value, this.currentLinkTargetPos);
+            var dbo = window.app.createDBObject(targetTable+'/'+value, {pos:this.currentLinkTargetPos});
             this.currentLink.setTarget(dbo);
         }else{
             this.currentLink.remove();
