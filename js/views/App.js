@@ -1,9 +1,15 @@
 var d3 = require('d3'),
     Backbone = require('backbone'),
+    _ = require('underscore'),
+    $ = Backbone.$,
+    Viewer = require('./Viewer'),
+    Mouse = require('../models/Mouse.js'),
     DBObjectModel = require('../models/DBObject.js'),
-    DBObjectListModel = require('../models/DBObjectList.js'),
+    DBListModel = require('../models/DBList.js'),
     DBObjectView = require('./DBObject.js'),
-    DBObjectListView = require('./DBObjectList.js'),
+    DBListView = require('./DBList.js'),
+    DBCable = require('./DBCable.js'),
+    CreationMenu = require('./CreationMenu.js'),
     utilities = require('../utilities.js');
 
 
@@ -13,16 +19,40 @@ var App = Backbone.View.extend({
         this.height = 800;
         this.tables = opts.tables;
         this.idAttribute = 'id';
-
-        this.svg = this.createSvg(this.width, this.height);
-
-        this.svg.on('contextmenu', this.onContextMenu.bind(this));
-
+        this.viewer = new Viewer();
+        this.mouse = new Mouse(this.viewer);
+        this.mouse.pos(this.viewer.width/2, this.viewer.height/2);
+        this.creationMenu = new CreationMenu({
+            tables: _.keys(this.tables)
+        });
+        this.creationMenu.on('chosen', this.creationMenuChosen.bind(this));
+        this.viewer.append(this.creationMenu.render().el);
+        this.objectCreationPos = [this.viewer.width/2-1000, this.viewer.height/2-300];
+        this.$el.append(this.viewer.render().el);
     },
 
-    /*events:{
-        'mouseup svg': 'svgMouseup'
-    },*/
+    events:{
+        'mouseup': 'mouseup',
+        'dblclick': 'dblclick'
+    },
+
+    // @TODO move to viewer
+    mouseup: function(e){
+        if(!$(e.target).hasClass('viewer__world')) return;
+
+        if(this.mouseCable){
+
+            this.openCreationMenu({
+                pos: [e.offsetX, e.offsetY]
+            });
+        }
+    },
+
+    dblclick: function(e){
+        this.openCreationMenu({
+            pos: [e.offsetX, e.offsetY]
+        });
+    },
 
     setIdAttribute: function(idAttribute){
         this.idAttribute = idAttribute;
@@ -30,15 +60,22 @@ var App = Backbone.View.extend({
 
 
     onContextMenu: function(){
-        d3.event.preventDefault();
+
 
         var slug = prompt('slug');
         this.createDBObject(slug, [d3.event.x, d3.event.y]);
         return false;
     },
 
+    getNextObjectPosition: function(){
+        this.objectCreationPos[0]+=400;
+        this.objectCreationPos[1]+=100;
+        return this.objectCreationPos;
+    },
+
 
     createDBObject: function(slug, opts){
+        opts = opts || {};
         //console.log(slugString, utilities.parseSlug(slugString));
         slug = typeof slug === 'string' ? utilities.parseSlug(slug) : slug;
 
@@ -54,65 +91,70 @@ var App = Backbone.View.extend({
             }
         }
 
-        var Model = slug._singleId ? DBObjectModel : DBObjectListModel,
+        var Model = slug._singleId ? DBObjectModel : DBListModel,
             model = new Model({
                 table: slug.table,
                 originField: slug.originField,
                 id: slug.id
             }),
-            View = slug._singleId ? DBObjectView : DBObjectListView,
+            View = slug._singleId ? DBObjectView : DBListView,
             view = new View({
                 model: model,
                 svg: this.svg
             });
 
-        if(opts.pos){
-            view.pos(opts.pos);
+
+        if(!opts.pos){
+            opts.pos = this.getNextObjectPosition();
         }
 
-        view.render();
-        //this.svg.node().appendChild(el.node());
+        view.pos(opts.pos);
+
+        this.listenTo(view, 'new-cable', this.onViewNewCable.bind(this));
+
+
+        this.viewer.append(view.render().el);
+
+
 
         return view;
     },
 
-    createSvg: function(width, height){
-        var svg = d3.select("body").append("svg")
-            .attr("width", width)
-            .attr("height", height);
+    createDBCable: function(source, sourceField, target){
+        var cable = new DBCable({
+            source: source,
+            sourceField: sourceField,
+            target: target
+        });
+        this.viewer.append(cable.render().el);
+        return cable;
+    },
 
-        this.rootSvg = svg;
+    onViewNewCable: function(dbobject, field){
+        this.mouseCable = this.createDBCable(dbobject, field, this.mouse);
+    },
 
-        svg.append("defs")
-            .append('pattern')
-                .attr('id', 'gridpattern')
-                .attr('patternUnits', 'userSpaceOnUse')
-                .attr('width', 150)
-                .attr('height', 150)
-                .append("image")
-                    .attr("xlink:href", "images/noisy_grid.png")
-                    .attr('width', 150)
-                    .attr('height', 150);
+    openCreationMenu: function(opts){
+        this.creationMenu.pos(opts.pos);
+        this.creationMenu.reset();
+        this.creationMenu.show();
+    },
 
-        // apply zoom
-        var zoom = d3.zoom()
-            .on('zoom', function(){
-                svg.attr("transform", d3.event.transform);
-                this.trigger('zoom');
-            }.bind(this));
-        svg = svg.call(zoom).append('g');
+    creationMenuChosen: function(table){
+        if(this.mouseCable){
+            var createdObject = this.createDBObject(table, {
+                from: this.mouseCable.source,
+                fromField: this.mouseCable.sourceField,
+                pos: this.mouseCable.target.pos()
+            });
+            this.mouseCable.setTarget(createdObject);
+            this.mouseCable = null;
+        }
+        this.creationMenu.hide();
+    },
 
-        // draw a grey "workspace" - purely styling
-        svg.append('rect')
-            .attr('class','background')
-            .attr('fill', 'url(#gridpattern)')
-            .attr('width', 9000)
-            .attr('height', 9000)
-            .attr('x', -5000)
-            .attr('y', -5000);
+    render: function(){
 
-
-        return svg;
     }
 });
 

@@ -4,86 +4,172 @@
     <meta charset="UTF-8">
     <title>DB Navigator</title>
     <style>
-        html,body{height:100%;}
+        *{box-sizing: border-box}
+        html,body{height:100%}
         body{
             margin:0;
             overflow:hidden;
+            color:#333;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
         }
-        svg {
+
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+            background:transparent;
+        }
+        ::-webkit-scrollbar-track {
+            background: #F3F3F3;
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #D9D9DE;
+        }
+
+        .hide{
+            display: none;
+        }
+
+        .viewer{
+            width:100%;
+            height:100%;
+            position: relative;
+            overflow: scroll;
+        }
+        .viewer__world{
+            background: #fff url(images/noisy_grid.png) repeat center center;
+            position: relative;
+        }
+
+
+        .dbobject{
             position: absolute;
-            top: 0;
-            left: 0;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+            border-radius: 2px;
+        }
+        .dbobject--loading{
+            padding:50px;
+            color:#999;
+            text-align: center;
+        }
+
+        .dbobject__outlet,
+        .dbobject__inlet{
+            width:10px;
+            height:10px;
+            background-color: #737373;
+        }
+
+        .dbobject-single__inlet{
+            position: absolute;
+            left:-6px;
+            top:21px;
+        }
+        .dbobject-single__table{
+            font-size:1.2em;
+            text-transform: uppercase;
+            padding-top: 14px;
+            text-align: center;
+        }
+        .dbobject-single__id{
+            font-size:3em;
+            padding:22px;
+            text-align: center;
+        }
+        .dbobject-single__attrs{}
+        .dbobject-single-attr{
+            display: flex;
+            position: relative;
+            justify-content: space-between;
+            border-top:1px solid #ccc;
+            padding:5px 10px 5px 5px;
+        }
+        .dbobject-single-attr__field{
+        }
+        .dbobject-single-attr__value{
+        }
+        .dbobject-single__outlet{
+            position: absolute;
+            top:10px;
+            right:-6px;
         }
 
 
-        .background{
-            /*fill:#eee;*/
+        .dbobject-list__header{
+            padding:1em;
+            font-size:1.2em;
+            text-transform: uppercase;
+            position: relative;
+        }
+        .dbobject-list__inlet{
+            position: absolute;
+            left:-6px;
+            top:27px;
+        }
+        .dbobject-list table{}
+        .dbobject-list table th{
+            padding:5px 7px;
+            text-align: left;
+        }
+        .dbobject-list table tr{}
+        .dbobject-list table td{
+            border-top:1px solid #ccc;
+            padding:5px 7px;
         }
 
-        .link{
+
+
+        .dbcable{
+            position: absolute;
+            pointer-events: none;
+        }
+        .dbcable svg{
+            display: block;
+        }
+        .dbcable svg path{
             fill:none;
-            stroke:blue;
+            stroke:#737373;
             stroke-width:3px;
         }
-        .dbobject{
-            font-family: consolas;
+
+
+
+        .creation-menu{
+            position: absolute;
+            width:200px;
+            border:1px solid #ccc;
+            z-index:999;
+            background-color: #fff;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
         }
-        .dbobject rect{
-            fill:rgba(255,255,255,0.8);
-            stroke: blue;
-            stroke-width:2px;
-        }
-        .dbobject rect.drag{
-            fill:transparent;
-            stroke: transparent;
-        }
-        .dbobject .origin{
-            fill: blue;
-            width:120px;
-            height:20px;
-            transform: translate(0,-21px);
-        }
-        .dbobject .originText{
-            fill: white;
-            transform: translate(3px,-5px);
-        }
-        .dbobject .tabletitle{
-            transform: translate(5px, 16px);
-            font-weight: bold;
-        }
-        .dbobject .total{
-            fill:#666;
-            stroke: none;
-        }
-        .dbobject .total__text{
-            fill:#FFF;
-        }
-        .dbobject .columns{
-            transform: translate(5px, 40px);
-        }
-        .dbobject .table-header text{
-            text-decoration: underline;
+        .creation-menu__item{
+            padding:0.5em 1em;
+            border-bottom:1px solid #ccc;
             cursor: pointer;
         }
-        .dbobject .outlet{
-            fill:blue;
+        .creation-menu__item:last-child{
+            border-bottom:none;
+        }
+        .creation-menu__item:hover{
+            background: #ddd;
         }
 
-        .dbobject .listoutlet{
-            fill: blue;
+        .creation-menu-tables__item{
+            padding:0.2em 0.5em;
+            border-bottom:1px solid #ccc;
+            cursor: pointer;
         }
-        .dbobject .listoutletText{
-            fill:white;
+        .creation-menu-tables__item:last-child{
+            border-bottom:none;
         }
-
-        .dbobject .foot-outlet{
-            fill:red;
-            stroke: none;
+        .creation-menu__item:hover{
+            background: #ddd;
         }
-        .dbobject .foot-outlet__text{
-            fill:white;
-        }
-
 
     </style>
 </head>

@@ -12,7 +12,12 @@ var DBObjectModel = Backbone.Model.extend({
     },
 
     url: function(){
-        return 'php/index.php?cmd=model&table=' + this.table + '&id=' + this.id + '&idAttribute=' + window.app.idAttribute;
+        //return 'php/index.php?cmd=model&table=' + this.table + '&id=' + this.id + '&idAttribute=' + window.app.idAttribute;
+        return 'node/db/model?table=' + this.table + '&value=' + this.id + '&field=' + window.app.idAttribute;
+    },
+
+    parse: function(attrs){
+        return {row: attrs};
     },
 
     getValueAsString: function(col){

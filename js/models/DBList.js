@@ -15,11 +15,12 @@ var DBObjectListModel = Backbone.Collection.extend({
 
     parse: function(resp){
         this.total = parseInt(resp.countTotal, 10);
+        this.fields = resp.fields;
         return resp.rows;
     },
 
     url: function(){
-        return 'php/index.php?cmd=list&table=' + this.table + '&originField=' + this.originField + '&originValue=' + this.id;
+        return 'node/db/list?table=' + this.table + '&originField=' + this.originField + '&originValue=' + this.id;
     },
 
     // @todo DRY

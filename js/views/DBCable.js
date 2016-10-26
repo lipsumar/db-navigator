@@ -8,9 +8,10 @@ var DBLink = Backbone.View.extend({
     initialize: function(opts){
         this.cableStrokeWidth = 3;
         this.source = opts.source;
+        this.sourceField = opts.sourceField;
         this.listenTo(this.source, 'move', this.render.bind(this));
-        this.target = opts.target;
-        this.listenTo(this.target, 'move', this.render.bind(this));
+        this.listenToOnce(this.source.model, 'sync', this.render.bind(this));
+        this.setTarget(opts.target);
         this.build();
     },
 
@@ -37,6 +38,15 @@ var DBLink = Backbone.View.extend({
         }
     },
 
+    setTarget: function(target){
+        if(this.target){
+            this.stopListening(this.target);
+        }
+        this.target = target;
+        this.listenTo(this.target, 'move', this.render.bind(this));
+        this.listenToOnce(this.target.model, 'sync', this.render.bind(this));
+    },
+
 
     build: function(){
         this.svg = d3.select(this.el).append("svg")
@@ -47,8 +57,8 @@ var DBLink = Backbone.View.extend({
 
     render: function(){
 
-        var srcPos = this.source.pos();
-        var trgPos = this.target.pos();
+        var srcPos = this.source.outletPos(this.sourceField);
+        var trgPos = this.target.inletPos();
 
         var topLeft = [
             Math.min(srcPos[0], trgPos[0]),
