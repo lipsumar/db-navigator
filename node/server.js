@@ -1,6 +1,7 @@
 var express = require('express'),
     app = express(),
-    mysqlActions = require('./mysql-actions');
+    mysqlActions = require('./mysql-actions'),
+    navigator = require('./app.js');
 
 
 // Routes
@@ -21,6 +22,38 @@ var connection = mysql.createConnection({
 connection.connect();
 
 mysqlActions.setConnection(connection);
+
+
+
+
+navigator.init({
+    db: connection
+});
+var cartman = navigator.createDBNode({
+    table: 't_users',
+    field: 'uid',
+    value: 3
+});
+var cartsStuff = navigator.createDBNode({
+    table: 't_stuff',
+    field: 'user_id',
+    from: cartman.outlet('uid')
+});
+var stores = navigator.createDBNode({
+    table: 't_stores',
+    field: 'uid',
+    from: cartsStuff.outlet('store_id')
+});
+navigator.execute(function(){
+    console.log('all is done and well :)');
+});
+
+
+
+
+
+
+
 
 
 app.get('/node/db/tables', function(req, res){

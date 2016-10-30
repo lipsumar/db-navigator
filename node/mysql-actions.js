@@ -41,6 +41,14 @@ function getList(table, where, callback){
     });
 }
 
+function arrayToIn(arr){
+    return arr.map(function(v){
+        return '\''+db.escape(v)+'\'';
+    }).join(',');
+}
+
+
+
 
 
 module.exports = {
@@ -68,6 +76,15 @@ module.exports = {
 
     list: function(table, field, value, callback){
         var where =  db.escapeId(field) + '=' + db.escape(value);
+        this.listWhere(table, where, callback);
+    },
+
+    listIn: function(table, field, arr, callback){
+        var where = db.escapeId(field) + ' IN (' + arrayToIn(arr) +')';
+        module.exports.listWhere(table, where, callback);
+    },
+
+    listWhere: function(table, where, callback){
 
         async.parallel([
             getListCount.bind(null, table, where),
@@ -80,7 +97,6 @@ module.exports = {
                 fields: results[1].fields
             });
         });
-
     },
 
     model: function(table, field, value, callback){
@@ -89,7 +105,9 @@ module.exports = {
             if (err) callback(err);
             callback(null, rows[0]);
         });
-    }
+    },
+
+    arrayToIn: arrayToIn
 
 
 };
